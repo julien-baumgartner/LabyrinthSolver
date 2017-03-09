@@ -1,0 +1,8 @@
+Objectif:
+
+Charger une image de labyrinthe, puis trouver le chemin depuis l'entrée jusqu'à la sortie
+
+Pour commencer, nous utiliserons une image de labirynthe avec un fond blanc et des murs
+ noirs, le pixel de départ sera rouge et celui d'arrivée sera bleu
+Le programme peut se compliquer si on utilise des photos de moins bonne qualité dont les
+couleurs ne sont pas uniformes
