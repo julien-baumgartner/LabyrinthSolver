@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 
 class Pixel:
     def __init__(self, x, y, parent=None):
@@ -11,53 +12,55 @@ class Pixel:
         else:
             self.value = parent.value+1
 
+    def isEquals(self, pixel):
+        return (self.x == pixel.x and self.y == pixel.y)
+
 def findPath(start, end, img):
 
-    pixelsParcourus = []
     queuePixels = []
     queuePixels.append(Pixel(start[0], start[1]))
 
     fini = False
-
+    etape = 0
     while(len(queuePixels) > 0 and fini == False):
-
+        etape = etape + 1
         pixel = queuePixels.pop(0)
 
+        nbNewPixels = 0
         if(pixel.x == end[0] and pixel.y == end[1]):
             lastPixel = pixel
+            #print("VICTORY")
             fini = True
-            print("VICTORY")
         else:
             newPixel = Pixel(pixel.x-1, pixel.y, pixel)
-            if(isPixelOk(newPixel, img, queuePixels, pixelsParcourus)):
+            if(isPixelOk(newPixel, img, queuePixels)):
                 queuePixels.append(newPixel)
                 #print("add")
 
             newPixel = Pixel(pixel.x+1, pixel.y, pixel)
-            if(isPixelOk(newPixel, img, queuePixels, pixelsParcourus)):
+            if(isPixelOk(newPixel, img, queuePixels)):
                 queuePixels.append(newPixel)
                 #print("add")
 
             newPixel = Pixel(pixel.x, pixel.y-1, pixel)
-            if(isPixelOk(newPixel, img, queuePixels, pixelsParcourus)):
+            if(isPixelOk(newPixel, img, queuePixels)):
                 queuePixels.append(newPixel)
                 #print("add")
 
             newPixel = Pixel(pixel.x, pixel.y+1, pixel)
-            if(isPixelOk(newPixel, img, queuePixels, pixelsParcourus)):
+            if(isPixelOk(newPixel, img, queuePixels)):
                 queuePixels.append(newPixel)
                 #print("add")
 
-        pixelsParcourus.append(pixel)
 
         img[pixel.x, pixel.y, 0] = 0
         img[pixel.x, pixel.y, 1] = 0
-        sorted(queuePixels, key=lambda pixel: pixel.value)
-        #print(len(pixelsParcourus))
-        if(len(pixelsParcourus) % 2000 == 0):
-            cv2.imshow('Input', img)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+        img[pixel.x, pixel.y, 2] = 0
+        #sorted(queuePixels, key=lambda pixel: pixel.value)
+        #if etape % 10000 == 0:
+            #cv2.imshow('Input', img)
+            #cv2.waitKey(0)
+            #cv2.destroyAllWindows()
 
     path = []
 
@@ -68,34 +71,33 @@ def findPath(start, end, img):
 
     return path
 
-def isPixelOk(pixel, img, queuePixels, pixelsParcourus):
+def isPixelOk(pixel, img, queuePixels):
     if(isWall(img, pixel.x, pixel.y) == False):
+        if pixel.parent.parent != None and pixel.isEquals(pixel.parent.parent):
+            return False
         for pix in queuePixels:
-            if pix.x == pixel.x and pix.y == pixel.y:
-                #print("queue")
-                return False
-        for pix in pixelsParcourus:
-            if pix.x == pixel.x and pix.y == pixel.y:
-                #print("parcours")
+            if pixel.isEquals(pix):
                 return False
 
-        #print("pixel ok")
         return True
 
     return False
 
 def isWall(img, x, y):
-    #print(img[x,y])
-    if(x < 0 or x >= 745 or y < 0 or y >= 560):
+    if(x < 0 or x >= height or y < 0 or y >= width):
+        #print("dehors")
         return True
     if img.item(x,y,0) != 255 and img.item(x,y,1) != 255 and img.item(x,y,2) != 255:
-            #print("wall pas ok")
+        #print("mur")
         return True
     return False
 
-img = cv2.imread("images/01.png")
+img = cv2.imread("images/02.png")
+startTime = (int)(time.time() * 1000)
 
-kernel = np.ones((21,21), np.uint8)
+#kernel = np.ones((21,21), np.uint8) #im1
+kernel = np.ones((4,4), np.uint8) #im2
+#kernel = np.ones((16,16), np.uint8) #im6
 
 
 start = [-1, -1]
@@ -123,9 +125,13 @@ img_erosion = cv2.erode(img, kernel, iterations=1)
 #img_erosion[end[0],end[1], 0] = 0
 #img_erosion[end[0],end[1], 1] = 0
 
-path = [] #findPath(start, end, img_erosion)
+path = []
+path = findPath(start, end, img_erosion)
+endTime = (int)(time.time() * 1000)
 
-cv2.imwrite('eee.png', img_erosion)
+print(str(endTime - startTime) + " ms")
+
+#cv2.imwrite('erode.png', img_erosion)
 
 if(len(path) > 0):
     for pixel in path:
@@ -133,6 +139,7 @@ if(len(path) > 0):
         img[pixel.x, pixel.y, 1] = 0
         img[pixel.x, pixel.y, 2] = 255
 
+cv2.imwrite('result.png', img)
 cv2.imshow('Input', img)
 cv2.imshow('Erosion', img_erosion)
 
