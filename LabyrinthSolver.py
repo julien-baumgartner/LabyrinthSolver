@@ -170,11 +170,12 @@ def detectStartEndWithBorder(img):
 
     return start, end
 
-img = cv2.imread("images/07.png")
+img = cv2.imread("images/04-3.jpg")
 startTime = (int)(time.time() * 1000)
 tolerence = 150
 #kernel = np.ones((21,21), np.uint8) #im1
-kernel = np.ones((4,4), np.uint8) #im2
+#kernel = np.ones((4,4), np.uint8) #im2
+kernel = np.ones((8,8), np.uint8) #im4-3
 #kernel = np.ones((16,16), np.uint8) #im6
 
 img_erosion = cv2.erode(img, kernel, iterations=1)
